@@ -30,6 +30,7 @@ export default {
       fontFamily: {
         playfair: ['"Playfair Display"', 'serif'],
         inter: ['Inter', 'sans-serif'],
+        outfit: ['Outfit', 'sans-serif'],
       },
     },
   },

@@ -1,15 +1,27 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import cafeLogo from '../assets/logo.jpg'
+import DashboardStaff from './DashboardStaff'
 import StaffCategories from './StaffCategories'
 import AddCategory from './AddCategory'
 import EditCategory from './EditCategory'
 import StaffSubcategories from './StaffSubcategories'
 import AddSubCategory from './AddSubCategory'
 import EditSubCategory from './EditSubCategory'
+import StaffVendors from './StaffVendors'
+import AddVendor from './AddVendor'
+import EditVendor from './EditVendor'
 
-// Icons as SVG components
+// ── Icons ──────────────────────────────────────────────────────────────────
 const Icons = {
+  Dashboard: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  ),
   Categories: () => (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <rect width="7" height="9" x="3" y="3" rx="1" />
@@ -102,9 +114,14 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
     </svg>
   ),
+  Close: () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ),
 }
 
-// Helper function to get entity type from path
+// ── Path helpers ────────────────────────────────────────────────────────────
 const getEntityType = (path) => {
   if (path.includes('/subcategories')) return 'subcategory'
   if (path.includes('/recipes')) return 'recipe'
@@ -116,22 +133,24 @@ const getEntityType = (path) => {
   return null
 }
 
-// Helper function to get action from path
 const getAction = (path) => {
   if (path.includes('/add')) return 'add'
   if (path.includes('/edit/')) return 'edit'
   return 'list'
 }
 
+// ── StaffPanel ──────────────────────────────────────────────────────────────
 const StaffPanel = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const [activeTab, setActiveTab] = useState('categories')
+
+  // Default active tab is now 'dashboard'
+  const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
-  
-  // Dropdown states - all closed by default
+
+  // Dropdown states
   const [inventoryOpen, setInventoryOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [salesOpen, setSalesOpen] = useState(false)
@@ -139,13 +158,16 @@ const StaffPanel = () => {
   useEffect(() => {
     try {
       const user = localStorage.getItem('user')
-      if (user) {
-        setCurrentUser(JSON.parse(user))
-      }
+      if (user) setCurrentUser(JSON.parse(user))
     } catch {
       setCurrentUser(null)
     }
   }, [])
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname, activeTab])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -154,7 +176,12 @@ const StaffPanel = () => {
     navigate('/login', { replace: true })
   }
 
-  // Menu sections with dropdown
+  // Helper: change tab and close mobile menu
+  const handleTabChange = (id) => {
+    setActiveTab(id)
+    setMobileMenuOpen(false)
+  }
+
   const menuSections = [
     {
       id: 'inventory',
@@ -193,126 +220,72 @@ const StaffPanel = () => {
     }
   ]
 
-  // Get current page label
+  // ── Page label ─────────────────────────────────────────────────────────────
   const getCurrentLabel = () => {
     const path = location.pathname
     const entity = getEntityType(path)
     const action = getAction(path)
-    
-    if (entity && action === 'add') {
-      return `Add ${entity.charAt(0).toUpperCase() + entity.slice(1)}`
-    }
-    if (entity && action === 'edit') {
-      return `Edit ${entity.charAt(0).toUpperCase() + entity.slice(1)}`
-    }
-    
-    // Find matching tab
+
+    if (entity && action === 'add') return `Add ${entity.charAt(0).toUpperCase() + entity.slice(1)}`
+    if (entity && action === 'edit') return `Edit ${entity.charAt(0).toUpperCase() + entity.slice(1)}`
+
+    if (activeTab === 'dashboard') return 'Dashboard'
+
     for (const section of menuSections) {
       for (const item of section.items) {
-        if (item.id === activeTab) {
-          return item.label
-        }
+        if (item.id === activeTab) return item.label
       }
     }
     return 'Dashboard'
   }
 
-  // Render active component based on route
+  // ── Content renderer ───────────────────────────────────────────────────────
   const renderContent = () => {
     try {
       const path = location.pathname
       const entity = getEntityType(path)
       const action = getAction(path)
-      
-      // Handle Add routes
+
       if (action === 'add') {
         switch (entity) {
-          case 'category':
-            return <AddCategory />
-          case 'subcategory':
-            return <AddSubCategory />
-          // case 'recipe':
-          //   return <AddRecipe />
-          // case 'ingredient':
-          //   return <AddIngredient />
-          // case 'brand':
-          //   return <AddBrand />
-          // case 'vendor':
-          //   return <AddVendor />
-          // case 'purchase':
-          //   return <AddPurchase />
-          default:
-            return <AddCategory />
+          case 'category':    return <AddCategory />
+          case 'subcategory': return <AddSubCategory />
+          case 'vendor':      return <AddVendor />
+          default:            return <AddCategory />
         }
       }
-      
-      // Handle Edit routes
+
       if (action === 'edit') {
         const id = path.split('/edit/')[1]
         switch (entity) {
-          case 'category':
-            return <EditCategory id={id} />
-          case 'subcategory':
-            return <EditSubCategory id={id} />
-          // case 'recipe':
-          //   return <EditRecipe id={id} />
-          // case 'ingredient':
-          //   return <EditIngredient id={id} />
-          // case 'brand':
-          //   return <EditBrand id={id} />
-          // case 'vendor':
-          //   return <EditVendor id={id} />
-          // case 'purchase':
-          //   return <EditPurchase id={id} />
-          default:
-            return <EditCategory id={id} />
+          case 'category':    return <EditCategory id={id} />
+          case 'subcategory': return <EditSubCategory id={id} />
+          case 'vendor':      return <EditVendor id={id} />
+          default:            return <EditCategory id={id} />
         }
       }
-      
-      // Regular list routes
+
       switch (activeTab) {
+        case 'dashboard':
+          return <DashboardStaff onNavigate={handleTabChange} />
         case 'categories':
           return <StaffCategories />
         case 'subcategories':
-           return <StaffSubcategories />
+          return <StaffSubcategories />
         case 'vendors':
-          return (
-            <div className="text-center py-12 text-[#998f82]">
-              <p className="text-lg">Vendors - Coming soon</p>
-            </div>
-          )
+          return <StaffVendors />
         case 'purchases':
-          return (
-            <div className="text-center py-12 text-[#998f82]">
-              <p className="text-lg">Purchases - Coming soon</p>
-            </div>
-          )
         case 'ingredients':
-          return (
-            <div className="text-center py-12 text-[#998f82]">
-              <p className="text-lg">Ingredients - Coming soon</p>
-            </div>
-          )
         case 'recipes':
-          return (
-            <div className="text-center py-12 text-[#998f82]">
-              <p className="text-lg">Recipes - Coming soon</p>
-            </div>
-          )
         case 'brands':
-          return (
-            <div className="text-center py-12 text-[#998f82]">
-              <p className="text-lg">Brands - Coming soon</p>
-            </div>
-          )
         case 'salesReport':
           return (
-            <div className="text-center py-12 text-[#998f82]">
-              <p className="text-lg">Sales Report - Coming soon</p>
+            <div className="text-center py-16 text-[#998f82]">
+              <p className="text-lg capitalize">{activeTab.replace(/([A-Z])/g, ' $1')} — Coming soon</p>
             </div>
           )
         default:
-          return <StaffCategories />
+          return <DashboardStaff onNavigate={handleTabChange} />
       }
     } catch (error) {
       console.error('Render error:', error)
@@ -325,160 +298,246 @@ const StaffPanel = () => {
     }
   }
 
+  // ── Sidebar inner content (shared between desktop + mobile drawer) ──────────
+  const SidebarContent = () => (
+    <>
+      {/* Brand Header */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-[#c9a962]/10 shrink-0">
+        <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center w-full' : ''}`}>
+          <div className="relative flex-shrink-0">
+            <div className="absolute inset-0 bg-[#c9a962]/10 blur-xl rounded-full" />
+            <img
+              src={cafeLogo}
+              alt="Logo"
+              className="relative w-10 h-10 rounded-xl border border-[#c9a962]/30 object-cover shadow-lg shadow-[#c9a962]/20"
+            />
+          </div>
+          {!sidebarCollapsed && (
+            <div className="flex flex-col">
+              <span className="font-['Playfair_Display',serif] text-xl mt-2 font-bold text-white tracking-wide leading-tight">
+                Prajain's
+              </span>
+              <div className="flex items-center gap-1 mt-2">
+                <span className="text-[6px] font-semibold text-[#c9a962] tracking-[0.2em] uppercase bg-[#c9a962]/8 px-2 py-0.5 rounded-full border border-[#c9a962]/15">
+                  Resto Cafe
+                </span>
+                <span className="text-[6px] font-semibold text-[#c9a962] tracking-[0.2em] uppercase bg-[#c9a962]/8 px-2 py-0.5 rounded-full border border-[#c9a962]/15">
+                  Since 2023
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Collapse toggle — desktop only */}
+        <button
+          type="button"
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className="hidden md:block text-[#8b7355] hover:text-[#c9a962] transition-colors duration-300 ml-1"
+        >
+          <Icons.ChevronLeft />
+        </button>
+
+        {/* Close button — mobile only */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(false)}
+          className="md:hidden text-[#8b7355] hover:text-[#c9a962] transition-colors duration-300"
+        >
+          <Icons.Close />
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-4 px-3">
+        <div className="space-y-1">
+
+          {/* ── Dashboard link (first, standalone) ── */}
+          <button
+            type="button"
+            onClick={() => handleTabChange('dashboard')}
+            className={`
+              w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl
+              transition-all duration-300
+              ${activeTab === 'dashboard'
+                ? 'bg-[#c9a962]/10 text-[#e8d5a3] border border-[#c9a962]/20'
+                : 'text-[#998f82] hover:text-[#e6dfd5] hover:bg-white/5'
+              }
+              ${sidebarCollapsed ? 'justify-center' : ''}
+            `}
+          >
+            <span className="text-[#c9a962]"><Icons.Dashboard /></span>
+            {!sidebarCollapsed && (
+              <>
+                <span className="text-xs font-semibold flex-1 text-left">Dashboard</span>
+                {activeTab === 'dashboard' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#c9a962]" />
+                )}
+              </>
+            )}
+          </button>
+
+          {/* Divider */}
+          {!sidebarCollapsed && (
+            <div className="pt-1 pb-2 px-2">
+              <div className="h-px bg-[#c9a962]/8" />
+            </div>
+          )}
+
+          {/* ── Grouped sections ── */}
+          {menuSections.map((section) => {
+            const IconComponent = section.icon
+            const isOpen = section.isOpen
+
+            return (
+              <div key={section.id} className="space-y-0.5">
+                {/* Section Header */}
+                <button
+                  type="button"
+                  onClick={section.toggle}
+                  className={`
+                    w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl
+                    transition-all duration-300
+                    text-[#998f82] hover:text-[#e6dfd5] hover:bg-white/5
+                    ${sidebarCollapsed ? 'justify-center' : ''}
+                  `}
+                >
+                  <span className="text-[#c9a962]"><IconComponent /></span>
+                  {!sidebarCollapsed && (
+                    <>
+                      <span className="text-xs font-medium flex-1 text-left capitalize">
+                        {section.label}
+                      </span>
+                      <span className="text-[#8b7355]">
+                        {isOpen ? <Icons.ChevronDown /> : <Icons.ChevronRight />}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                {/* Section Items */}
+                {isOpen && !sidebarCollapsed && (
+                  <div className="ml-6 space-y-0.5 border-l border-[#c9a962]/10 pl-2">
+                    {section.items.map((item) => {
+                      const ItemIcon = item.icon
+                      const isActive = activeTab === item.id
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleTabChange(item.id)}
+                          className={`
+                            w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
+                            transition-all duration-300 text-sm
+                            ${isActive
+                              ? 'bg-[#c9a962]/10 text-[#e8d5a3] border border-[#c9a962]/20'
+                              : 'text-[#998f82] hover:text-[#e6dfd5] hover:bg-white/5'
+                            }
+                          `}
+                        >
+                          <span className="text-[#c9a962]"><ItemIcon /></span>
+                          <span className="font-medium">{item.label}</span>
+                          {isActive && (
+                            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#c9a962]" />
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </nav>
+
+      {/* User footer */}
+      {!sidebarCollapsed && currentUser && (
+        <div className="shrink-0 px-4 py-3 border-t border-[#c9a962]/10">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-[#c9a962]/20 border border-[#c9a962]/30 flex items-center justify-center text-[#c9a962] text-xs font-bold shrink-0">
+              {(currentUser.name || currentUser.email || 'S')[0].toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-[#e6dfd5]/25 truncate">
+                {currentUser.name || currentUser.staff.email}
+              </p>
+              <p className="text-[10px] text-[#8b7355]/45 capitalize">User: {currentUser.role}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="h-screen bg-[#0a0805] flex font-['Inter',sans-serif] overflow-hidden">
-      
-      {/* ===== SIDEBAR - Fixed, Full Height with Border ===== */}
-      <aside 
+
+      {/* ── DESKTOP SIDEBAR ── */}
+      <aside
         className={`
-          h-full bg-[#070604] border-r border-[#c9a962]/15 
-          transition-all duration-300 ease-in-out flex flex-col flex-shrink-0
+          hidden md:flex h-full bg-[#070604] border-r border-[#c9a962]/15
+          flex-col flex-shrink-0 transition-all duration-300 ease-in-out
           ${sidebarCollapsed ? 'w-[70px]' : 'w-[260px]'}
         `}
       >
-        {/* Sidebar Header - Brand like Login Page */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-[#c9a962]/10 shrink-0">
-          <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center w-full' : ''}`}>
-            <div className="relative flex-shrink-0">
-              <div className="absolute inset-0 bg-[#c9a962]/10 blur-xl rounded-full"></div>
-              <img 
-                src={cafeLogo} 
-                alt="Logo" 
-                className="relative w-10 h-10 rounded-xl border border-[#c9a962]/30 object-cover shadow-lg shadow-[#c9a962]/20"
-              />
-            </div>
-            {!sidebarCollapsed && (
-              <div className="flex flex-col">
-                <span className="font-['Playfair_Display',serif] text-xl mt-2 font-bold text-white tracking-wide leading-tight">
-                  Prajain's
-                </span>
-                <div className="flex items-center gap-1 mt-2">
-                  <span className="text-[6px] font-semibold text-[#c9a962] tracking-[0.2em] uppercase bg-[#c9a962]/8 px-2 py-0.5 rounded-full border border-[#c9a962]/15 inline-block w-fit">
-                    Resto Cafe
-                  </span>
-                  <span className="text-[6px] font-semibold text-[#c9a962] tracking-[0.2em] uppercase bg-[#c9a962]/8 px-2 py-0.5 rounded-full border border-[#c9a962]/15 inline-block w-fit">
-                    Since 2023
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="hidden md:block text-[#8b7355] hover:text-[#c9a962] transition-colors duration-300"
-          >
-            <Icons.ChevronLeft />
-          </button>
-        </div>
-
-        {/* Sidebar Navigation with Dropdowns - Scrollable */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
-          <div className="space-y-2">
-            {menuSections.map((section) => {
-              const IconComponent = section.icon
-              const isOpen = section.isOpen
-              
-              return (
-                <div key={section.id} className="space-y-0.5">
-                  {/* Section Header - Click to toggle */}
-                  <button
-                    type="button"
-                    onClick={section.toggle}
-                    className={`
-                      w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl
-                      transition-all duration-300
-                      text-[#998f82] hover:text-[#e6dfd5] hover:bg-white/5
-                      ${sidebarCollapsed ? 'justify-center' : ''}
-                    `}
-                  >
-                    <span className="text-[#c9a962]"><IconComponent /></span>
-                    {!sidebarCollapsed && (
-                      <>
-                        <span className="text-xs font-medium flex-1 text-left capitalize">
-                          {section.label}
-                        </span>
-                        <span className="text-[#8b7355]">
-                          {isOpen ? <Icons.ChevronDown /> : <Icons.ChevronRight />}
-                        </span>
-                      </>
-                    )}
-                  </button>
-
-                  {/* Section Items - Show when expanded */}
-                  {isOpen && !sidebarCollapsed && (
-                    <div className="ml-6 space-y-0.5 border-l border-[#c9a962]/10 pl-2">
-                      {section.items.map((item) => {
-                        const ItemIcon = item.icon
-                        const isActive = activeTab === item.id
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => {
-                              setActiveTab(item.id)
-                              setMobileMenuOpen(false)
-                            }}
-                            className={`
-                              w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
-                              transition-all duration-300 text-sm
-                              ${isActive 
-                                ? 'bg-[#c9a962]/10 text-[#e8d5a3] border border-[#c9a962]/20' 
-                                : 'text-[#998f82] hover:text-[#e6dfd5] hover:bg-white/5'
-                              }
-                            `}
-                          >
-                            <span className="text-[#c9a962]"><ItemIcon /></span>
-                            <span className="font-medium">{item.label}</span>
-                            {isActive && (
-                              <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#c9a962]"></span>
-                            )}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </nav>
+        <SidebarContent />
       </aside>
 
-      {/* ===== MAIN CONTENT ===== */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        
-        {/* ===== NAVBAR - Fixed ===== */}
-        <header className="sticky top-0 z-30 bg-[#0a0805]/80 backdrop-blur-xl border-b border-[#c9a962]/10 px-4 py-3 flex items-center justify-between shrink-0">
-          
-          {/* Left - Mobile Menu Toggle & Title */}
-          <div className="flex items-center gap-3">
+      {/* ── MOBILE SIDEBAR DRAWER ── */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50 flex flex-col
+          w-[280px] bg-[#070604] border-r border-[#c9a962]/15
+          transition-transform duration-300 ease-in-out
+          md:hidden
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        <SidebarContent />
+      </aside>
+
+      {/* ── MOBILE OVERLAY ── */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* ── MAIN CONTENT ── */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+
+        {/* Navbar */}
+        <header className="sticky top-0 z-30 bg-[#0a0805]/80 backdrop-blur-xl border-b border-[#c9a962]/20 px-4 py-3 flex items-center justify-between shrink-0">
+
+          {/* Left */}
+          <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-[#e6dfd5] hover:text-[#c9a962] transition-colors duration-300"
+              className="md:hidden text-[#e6dfd5] hover:text-[#c9a962] transition-colors duration-300 shrink-0"
             >
               <Icons.MenuIcon />
             </button>
-            
-            <h1 className="text-lg font-['Playfair_Display',serif] text-[#e8d5a3] font-semibold">
+
+            <h1 className="text-base sm:text-lg font-['Playfair_Display',serif] text-[#e8d5a3] font-semibold truncate">
               {getCurrentLabel()}
             </h1>
-            <span className="hidden sm:inline-block text-xs text-[#8b7355] font-mono tracking-wider bg-white/5 px-3 py-1 rounded-full border border-[#c9a962]/10">
+            <span className="hidden sm:inline-block text-xs text-[#8b7355] font-mono tracking-wider bg-white/5 px-3 py-1 rounded-full border border-[#c9a962]/10 shrink-0">
               Staff Panel
             </span>
           </div>
 
-          {/* Right - Time & Logout */}
-          <div className="flex items-center gap-4">
-            {/* Time */}
+          {/* Right */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <div className="hidden sm:flex items-center gap-2 text-xs text-[#8b7355]">
               <Icons.Time />
               <span>{new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
 
-            {/* Home Button */}
-            <button 
+            <button
               type="button"
               onClick={() => navigate('/')}
               className="text-[#8b7355] hover:text-[#c9a962] transition-colors duration-300 p-1.5 rounded-lg hover:bg-white/5"
@@ -487,42 +546,24 @@ const StaffPanel = () => {
               <Icons.Home />
             </button>
 
-            {/* Logout Button */}
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-[#f43f5e]/10 border border-[#f43f5e]/20 rounded-lg text-[#f43f5e] hover:bg-[#f43f5e]/20 transition-all duration-300 text-sm font-medium"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#f43f5e]/10 border border-[#f43f5e]/20 rounded-lg text-[#f43f5e] hover:bg-[#f43f5e]/20 transition-all duration-300 text-sm font-medium"
             >
               <Icons.Logout />
               <span className="hidden sm:inline">Logout</span>
             </button>
-
-            {/* Logout - Mobile only icon */}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="md:hidden text-[#8b7355] hover:text-[#f43f5e] transition-colors duration-300 p-1.5"
-            >
-              <Icons.Logout />
-            </button>
           </div>
         </header>
 
-        {/* ===== CONTENT AREA - Scrollable ===== */}
+        {/* Content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {renderContent()}
           </div>
         </main>
       </div>
-
-      {/* ===== MOBILE OVERLAY ===== */}
-      {mobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
     </div>
   )
 }
