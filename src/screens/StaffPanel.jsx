@@ -11,6 +11,9 @@ import EditSubCategory from './EditSubCategory'
 import StaffVendors from './StaffVendors'
 import AddVendor from './AddVendor'
 import EditVendor from './EditVendor'
+import StaffBrands from './StaffBrands'
+import AddBrand from './AddBrand'
+import EditBrand from './EditBrand'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const Icons = {
@@ -248,20 +251,32 @@ const StaffPanel = () => {
 
       if (action === 'add') {
         switch (entity) {
-          case 'category':    return <AddCategory />
-          case 'subcategory': return <AddSubCategory />
-          case 'vendor':      return <AddVendor />
-          default:            return <AddCategory />
+          case 'category':    
+            return <AddCategory />
+          case 'subcategory': 
+            return <AddSubCategory />
+          case 'vendor': 
+            return <AddVendor />
+          case 'brand': 
+            return <AddBrand />
+          default:            
+             return <AddCategory />
         }
       }
 
       if (action === 'edit') {
         const id = path.split('/edit/')[1]
         switch (entity) {
-          case 'category':    return <EditCategory id={id} />
-          case 'subcategory': return <EditSubCategory id={id} />
-          case 'vendor':      return <EditVendor id={id} />
-          default:            return <EditCategory id={id} />
+          case 'category':    
+            return <EditCategory id={id} />
+          case 'subcategory': 
+            return <EditSubCategory id={id} />
+          case 'vendor':      
+            return <EditVendor id={id} />
+          case 'brand':
+            return <EditBrand id={id} />
+          default:            
+            return <EditCategory id={id} />
         }
       }
 
@@ -278,6 +293,7 @@ const StaffPanel = () => {
         case 'ingredients':
         case 'recipes':
         case 'brands':
+          return <StaffBrands />
         case 'salesReport':
           return (
             <div className="text-center py-16 text-[#998f82]">
