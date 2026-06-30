@@ -20,6 +20,8 @@ import EditIngredient from './EditIngredient'
 import StaffRecipes from './StaffRecipes'
 import AddRecipe from './AddRecipe'
 import EditRecipe from './EditRecipe'
+import StaffPurchases from './StaffPurchases'
+import AddPurchase from './AddPurchase'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const Icons = {
@@ -268,7 +270,9 @@ const StaffPanel = () => {
           case 'ingredient':
              return <AddIngredient />
           case 'recipe':
-              return <AddRecipe />
+             return <AddRecipe />
+          case 'purchase':
+             return <AddPurchase />
           default:            
              return <AddCategory />
         }
@@ -303,14 +307,14 @@ const StaffPanel = () => {
           return <StaffSubcategories />
         case 'vendors':
           return <StaffVendors />
-        case 'purchases':
         case 'ingredients':
            return <StaffIngredients />
         case 'brands':
           return <StaffBrands />
         case 'recipes':
           return <StaffRecipes />
-
+        case 'purchases':
+          return <StaffPurchases />
         case 'salesReport':
           return (
             <div className="text-center py-16 text-[#998f82]">
