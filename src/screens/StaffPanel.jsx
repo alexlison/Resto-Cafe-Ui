@@ -22,6 +22,7 @@ import AddRecipe from './AddRecipe'
 import EditRecipe from './EditRecipe'
 import StaffPurchases from './StaffPurchases'
 import AddPurchase from './AddPurchase'
+import StaffStock from './StaffStock'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const Icons = {
@@ -77,12 +78,28 @@ const Icons = {
       <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
     </svg>
   ),
-  Sales: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path d="M12 2v4M12 22v-4M4 12H2M22 12h-2M19.07 4.93l-2.83 2.83M6.34 17.66l-2.83 2.83M17.66 17.66l2.83 2.83M4.93 4.93l2.83 2.83" />
-      <circle cx="12" cy="12" r="4" />
-    </svg>
-  ),
+Sales: () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    <rect x="3" y="13" width="4" height="8" rx="1" />
+    <rect x="9" y="9" width="4" height="12" rx="1" />
+    <rect x="15" y="5" width="4" height="16" rx="1" />
+  </svg>
+),
+report: () => {
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25M9 16.5v.75m3-3v3M15 12v5.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+</svg>
+
+},
+Stock: () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <rect x="4" y="4" width="16" height="5" rx="1"/>
+    <rect x="4" y="10" width="16" height="5" rx="1"  />
+    <rect x="4" y="16" width="16" height="5" rx="1"  />
+    <path d="M4 6.5h16M4 12.5h16M4 18.5h16"  />
+  </svg>
+),
   Inventory: () => (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
@@ -139,6 +156,7 @@ const getEntityType = (path) => {
   if (path.includes('/ingredients')) return 'ingredient'
   if (path.includes('/brands')) return 'brand'
   if (path.includes('/vendors')) return 'vendor'
+  if (path.includes('/stock')) return 'stock'
   if (path.includes('/purchases')) return 'purchase'
   if (path.includes('/categories')) return 'category'
   return null
@@ -204,7 +222,9 @@ const StaffPanel = () => {
         { id: 'categories', label: 'Categories', icon: Icons.Categories },
         { id: 'subcategories', label: 'Subcategories', icon: Icons.Subcategories },
         { id: 'vendors', label: 'Vendors', icon: Icons.Vendors },
-        { id: 'purchases', label: 'Purchases', icon: Icons.Purchases },
+        { id: 'stock', label: 'Stock', icon: Icons.Stock }, 
+
+
       ]
     },
     {
@@ -226,6 +246,7 @@ const StaffPanel = () => {
       isOpen: salesOpen,
       toggle: () => setSalesOpen(!salesOpen),
       items: [
+        { id: 'purchases', label: 'Purchases', icon: Icons.Purchases },
         { id: 'salesReport', label: 'Sales Report', icon: Icons.Sales },
       ]
     }
@@ -307,6 +328,8 @@ const StaffPanel = () => {
           return <StaffSubcategories />
         case 'vendors':
           return <StaffVendors />
+        case 'stock':
+            return <StaffStock />
         case 'ingredients':
            return <StaffIngredients />
         case 'brands':
