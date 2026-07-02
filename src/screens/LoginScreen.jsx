@@ -31,6 +31,23 @@ const LoginScreen = () => {
     setParticles(newParticles)
   }, [])
 
+  // Update batch statuses after login
+  const updateBatchStatuses = async (token) => {
+    try {
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/staff/updateBatchStatus`,
+        {},
+        { headers: { token } }
+      )
+      console.log('Batch statuses updated on login:', response.data)
+      return response.data
+    } catch (err) {
+      // Silently fail - don't block login if batch update fails
+      console.warn('Failed to update batch statuses:', err.message)
+      return null
+    }
+  }
+
   // Email validation
   const isValidEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -90,16 +107,19 @@ const LoginScreen = () => {
         localStorage.removeItem('rememberEmail')
       }
 
+      // Update batch statuses after successful login (for staff users)
+      if (user.role === 'staff' || user.role === 'manager' || user.role === 'admin') {
+        await updateBatchStatuses(token)
+      }
+
       // Redirect based on role
       if (user.role === 'staff') {
         navigate('/staffPanel', { replace: true })
       } else if (user.role === 'manager') {
-        navigate('/ManagerPanel', { replace: true })
+        navigate('/dashboard', { replace: true })
       } else if(user.role === 'admin'){
-         navigate('/adminPanel', { replace: true })
-      }
-      
-      else {
+         navigate('/dashboard', { replace: true })
+      } else {
         navigate('/login', { replace: true })
       }
 
